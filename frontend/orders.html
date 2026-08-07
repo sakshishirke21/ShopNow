@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Orders - ShopNow</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#eaeded; color:#0f1111; }
+  header { background:#131921; color:#fff; padding:14px 24px; border-bottom:4px solid #232f3e; display:flex; justify-content:space-between; align-items:center; }
+  .brand { color:#fff; text-decoration:none; font-size:1.7rem; font-weight:700; letter-spacing:-1px; }
+  .brand span { font-size:1rem; font-weight:400; margin-left:8px; color:#ddd; }
+  a.back { color:#ddd; text-decoration:none; font-size:0.9rem; }
+  main { max-width:900px; margin:28px auto; padding:0 18px 60px; }
+  h1 { margin:0 0 18px; font-size:1.6rem; }
+  .order-card { background:#fff; border:1px solid #d5d9d9; border-radius:8px; margin-bottom:18px; overflow:hidden; }
+  .order-head { background:#f0f2f2; padding:12px 18px; display:flex; flex-wrap:wrap; gap:24px; font-size:0.85rem; color:#565959; }
+  .order-head b { color:#0f1111; }
+  .order-body { padding:16px 18px; }
+  .item-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f2f2; font-size:0.92rem; }
+  .item-row:last-child { border-bottom:none; }
+  .status-pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700; background:#e7f4e4; color:#1e7b34; }
+  .status-pill.cancelled { background:#fde8e8; color:#c0392b; }
+  .status-pill.pending { background:#fff3d6; color:#946200; }
+  .actions { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+  button.act, a.act { padding:8px 14px; border:1px solid #888c8c; border-radius:20px; background:#fff; font-size:0.85rem; cursor:pointer; text-decoration:none; color:#0f1111; }
+  button.act:hover, a.act:hover { background:#f7f7f7; }
+  .tracking-box { margin-top:12px; padding:12px; background:#f7f7f7; border-radius:6px; font-size:0.88rem; display:none; }
+  .empty, .loading, .error { text-align:center; padding:60px 20px; color:#565959; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="user.html">ShopNow<span>Your Orders</span></a>
+  <a class="back" href="help.html">Help</a>
+</header>
+<main>
+  <h1>Your Orders</h1>
+  <div id="ordersList"><p class="loading">Loading your orders&hellip;</p></div>
+</main>
+<script>
+const API = "http://localhost:5000/api";
+const token = localStorage.getItem("userToken");
+
+function statusClass(s){
+  s = (s || "").toLowerCase();
+  if(s.includes("cancel")) return "cancelled";
+  if(s.includes("pending") || s.includes("placed")) return "pending";
+  return "";
+}
+
+async function loadOrders(){
+  const list = document.getElementById("ordersList");
+  if(!token){
+    list.innerHTML = `<p class="empty">Please <a href="login.html">sign in</a> to see your orders.</p>`;
+    return;
+  }
+  try{
+    const res = await fetch(`${API}/orders/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    const orders = Array.isArray(data) ? data : (data.orders || []);
+    if(!orders.length){
+      list.innerHTML = `<p class="empty">You have no orders yet. <a href="user.html">Start shopping</a>.</p>`;
+      return;
+    }
+    list.innerHTML = orders.map(o => renderOrder(o)).join("");
+  }catch(e){
+    console.error(e);
+    list.innerHTML = `<p class="error">Unable to load your orders right now. Please try again later.</p>`;
+  }
+}
+
+function renderOrder(o){
+  const id = o._id || o.id;
+  const items = o.items || o.products || [];
+  const cls = statusClass(o.status);
+  const cancellable = !cls && !(o.status || "").toLowerCase().includes("delivered");
+  return `
+    <div class="order-card">
+      <div class="order-head">
+        <div>Order placed<br><b>${o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "-"}</b></div>
+        <div>Total<br><b>&#8377;${Number(o.total || 0).toFixed(2)}</b></div>
+        <div>Order #<br><b>${o.number || id}</b></div>
+        <div>Status<br><span class="status-pill ${cls}">${o.status || "Placed"}</span></div>
+      </div>
+      <div class="order-body">
+        ${items.map(i => `<div class="item-row"><span>${(i.name || i.title || "Product")} &times; ${i.quantity || 1}</span><span>&#8377;${Number(i.price || 0).toFixed(2)}</span></div>`).join("") || "<p>No item details available.</p>"}
+        <div class="actions">
+          <button class="act" onclick="showTracking('${id}', this)">Track package</button>
+          <button class="act" onclick="viewInvoice('${id}')">View invoice</button>
+          <a class="act" href="returns.html?order=${id}">Return or replace items</a>
+          ${cancellable ? `<button class="act" onclick="cancelOrder('${id}')">Cancel order</button>` : ""}
+        </div>
+        <div class="tracking-box" id="track-${id}"></div>
+      </div>
+    </div>`;
+}
+
+async function showTracking(id, btn){
+  const box = document.getElementById(`track-${id}`);
+  const isOpen = box.style.display === "block";
+  if(isOpen){ box.style.display = "none"; return; }
+  box.style.display = "block";
+  box.innerHTML = "Loading tracking details&hellip;";
+  try{
+    const res = await fetch(`${API}/orders/${id}/tracking`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    if(!data.success){ box.innerHTML = data.message || "Tracking not available yet."; return; }
+    const t = data.tracking || {};
+    const timeline = (data.timeline || []).map(s => `<div>&bull; ${s.status}${s.note ? " - " + s.note : ""} ${s.at ? "(" + new Date(s.at).toLocaleString() + ")" : ""}</div>`).join("");
+    box.innerHTML = `
+      <div><b>Status:</b> ${data.status || "Placed"}</div>
+      ${t.carrier ? `<div><b>Carrier:</b> ${t.carrier}</div>` : ""}
+      ${t.id ? `<div><b>Tracking ID:</b> ${t.id}</div>` : ""}
+      ${t.estimate ? `<div><b>Estimated delivery:</b> ${new Date(t.estimate).toLocaleDateString()}</div>` : ""}
+      ${timeline ? `<div style="margin-top:8px;">${timeline}</div>` : "<div style='margin-top:8px;color:#565959;'>No tracking updates yet.</div>"}
+    `;
+  }catch(e){
+    console.error(e);
+    box.innerHTML = "Unable to fetch tracking right now.";
+  }
+}
+
+async function viewInvoice(id){
+  try{
+    const res = await fetch(`${API}/orders/${id}/invoice`, { headers: { Authorization: `Bearer ${token}` } });
+    const html = await res.text();
+    const win = window.open("", "_blank");
+    if(win){ win.document.write(html); win.document.close(); }
+  }catch(e){
+    console.error(e);
+    alert("Unable to open the invoice right now.");
+  }
+}
+
+async function cancelOrder(id){
+  if(!confirm("Cancel this order?")) return;
+  try{
+    const res = await fetch(`${API}/orders/${id}/cancel`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    if(data.success){ alert("Order cancelled."); loadOrders(); }
+    else alert(data.message || "Unable to cancel this order.");
+  }catch(e){
+    console.error(e);
+    alert("Unable to cancel this order right now.");
+  }
+}
+
+loadOrders();
+</script>
+</body>
+</html>

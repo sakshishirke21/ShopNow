@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manage Addresses - ShopNow</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#eaeded; color:#0f1111; }
+  header { background:#131921; color:#fff; padding:14px 24px; border-bottom:4px solid #232f3e; display:flex; justify-content:space-between; align-items:center; }
+  .brand { color:#fff; text-decoration:none; font-size:1.7rem; font-weight:700; letter-spacing:-1px; }
+  .brand span { font-size:1rem; font-weight:400; margin-left:8px; color:#ddd; }
+  a.back { color:#ddd; text-decoration:none; font-size:0.9rem; }
+  main { max-width:820px; margin:28px auto; padding:0 18px 60px; }
+  h1 { margin:0 0 18px; font-size:1.6rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:16px; margin-bottom:18px; }
+  .addr-card { background:#fff; border:1px solid #d5d9d9; border-radius:8px; padding:16px; position:relative; }
+  .addr-card.default { border-color:#e77600; box-shadow:0 0 0 1px #e77600; }
+  .addr-card h3 { margin:0 0 6px; font-size:1rem; }
+  .addr-card p { margin:0; color:#565959; font-size:0.88rem; line-height:1.4; }
+  .badge { display:inline-block; background:#fff3e0; color:#b45f00; font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:10px; margin-bottom:8px; }
+  .addr-actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+  .addr-actions button { padding:6px 12px; font-size:0.8rem; border:1px solid #888c8c; border-radius:16px; background:#fff; cursor:pointer; }
+  .addr-actions button:hover { background:#f7f7f7; }
+  .add-card { border:2px dashed #d5d9d9; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#007185; font-weight:700; min-height:110px; background:#fff; border-radius:8px; }
+  .add-card:hover { background:#f7f7f7; }
+  .panel { background:#fff; border:1px solid #d5d9d9; border-radius:8px; padding:20px; margin-top:10px; display:none; }
+  .panel.open { display:block; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  label { display:block; font-size:0.85rem; font-weight:700; margin:10px 0 4px; }
+  input { width:100%; padding:9px 10px; border:1px solid #888c8c; border-radius:4px; font-size:0.92rem; }
+  .form-actions { margin-top:16px; display:flex; gap:10px; }
+  button.primary { padding:10px 18px; border:1px solid #fcd200; border-radius:20px; background:#ffd814; font-weight:700; cursor:pointer; }
+  button.primary:hover { background:#f7ca00; }
+  button.cancel { padding:10px 18px; border:1px solid #888c8c; border-radius:20px; background:#fff; cursor:pointer; }
+  #msg { margin-top:10px; font-size:0.88rem; }
+  #msg.ok { color:#1e7b34; }
+  #msg.err { color:#c0392b; }
+  .signin-note { text-align:center; padding:40px 20px; color:#565959; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="user.html">ShopNow<span>Manage Addresses</span></a>
+  <a class="back" href="help.html">Help</a>
+</header>
+<main>
+  <h1>Your Addresses</h1>
+  <div id="content"><p>Loading&hellip;</p></div>
+</main>
+<script>
+const API = "http://localhost:5000/api";
+const token = localStorage.getItem("userToken");
+let addresses = [];
+let editingIndex = null;
+
+async function init(){
+  const content = document.getElementById("content");
+  if(!token){
+    content.innerHTML = `<p class="signin-note">Please <a href="login.html">sign in</a> to manage your addresses.</p>`;
+    return;
+  }
+  content.innerHTML = `
+    <div class="grid" id="addrGrid"></div>
+    <div class="panel" id="formPanel">
+      <h3 id="formTitle">Add a new address</h3>
+      <label>Label (e.g. Home, Work)</label>
+      <input id="f-label" placeholder="Home" />
+      <div class="row2">
+        <div><label>Full name</label><input id="f-name" /></div>
+        <div><label>Phone</label><input id="f-phone" /></div>
+      </div>
+      <label>Address line 1</label>
+      <input id="f-line1" />
+      <label>Address line 2 (optional)</label>
+      <input id="f-line2" />
+      <div class="row2">
+        <div><label>City</label><input id="f-city" /></div>
+        <div><label>State</label><input id="f-state" /></div>
+      </div>
+      <div class="row2">
+        <div><label>Postal code</label><input id="f-postal" /></div>
+        <div><label>Country</label><input id="f-country" /></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;"><input type="checkbox" id="f-default" style="width:auto;"> Set as default address</label>
+      <div class="form-actions">
+        <button class="primary" onclick="saveAddress()">Save address</button>
+        <button class="cancel" onclick="closeForm()">Cancel</button>
+      </div>
+      <div id="msg"></div>
+    </div>
+  `;
+  await loadAddresses();
+}
+
+async function loadAddresses(){
+  try{
+    const res = await fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    addresses = (data.user && data.user.addresses) || [];
+    renderGrid();
+  }catch(e){
+    console.error(e);
+    document.getElementById("addrGrid").innerHTML = `<p>Unable to load your addresses right now.</p>`;
+  }
+}
+
+function renderGrid(){
+  const grid = document.getElementById("addrGrid");
+  grid.innerHTML = addresses.map((a, i) => `
+    <div class="addr-card ${a.isDefault ? "default" : ""}">
+      ${a.isDefault ? '<span class="badge">DEFAULT</span><br>' : ""}
+      <h3>${a.label || "Address"}</h3>
+      <p>${a.name || ""}${a.phone ? " &middot; " + a.phone : ""}<br>
+      ${a.line1 || ""}${a.line2 ? ", " + a.line2 : ""}<br>
+      ${[a.city, a.state, a.postalCode].filter(Boolean).join(", ")}<br>
+      ${a.country || ""}</p>
+      <div class="addr-actions">
+        <button onclick="editAddress(${i})">Edit</button>
+        <button onclick="removeAddress(${i})">Remove</button>
+        ${!a.isDefault ? `<button onclick="makeDefault(${i})">Set default</button>` : ""}
+      </div>
+    </div>
+  `).join("") + `<div class="add-card" onclick="newAddress()">+ Add a new address</div>`;
+}
+
+function newAddress(){
+  editingIndex = null;
+  ["label","name","phone","line1","line2","city","state","postal","country"].forEach(f => document.getElementById(`f-${f}`).value = "");
+  document.getElementById("f-default").checked = addresses.length === 0;
+  document.getElementById("formTitle").textContent = "Add a new address";
+  document.getElementById("formPanel").classList.add("open");
+  document.getElementById("msg").textContent = "";
+}
+
+function editAddress(i){
+  editingIndex = i;
+  const a = addresses[i];
+  document.getElementById("f-label").value = a.label || "";
+  document.getElementById("f-name").value = a.name || "";
+  document.getElementById("f-phone").value = a.phone || "";
+  document.getElementById("f-line1").value = a.line1 || "";
+  document.getElementById("f-line2").value = a.line2 || "";
+  document.getElementById("f-city").value = a.city || "";
+  document.getElementById("f-state").value = a.state || "";
+  document.getElementById("f-postal").value = a.postalCode || "";
+  document.getElementById("f-country").value = a.country || "";
+  document.getElementById("f-default").checked = !!a.isDefault;
+  document.getElementById("formTitle").textContent = "Edit address";
+  document.getElementById("formPanel").classList.add("open");
+  document.getElementById("msg").textContent = "";
+}
+
+function closeForm(){
+  document.getElementById("formPanel").classList.remove("open");
+}
+
+async function persist(successText){
+  const msg = document.getElementById("msg");
+  try{
+    const res = await fetch(`${API}/me`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ addresses })
+    });
+    const data = await res.json();
+    if(data.success){
+      addresses = (data.user && data.user.addresses) || addresses;
+      renderGrid();
+      msg.className = "ok";
+      msg.textContent = successText;
+    }else{
+      msg.className = "err";
+      msg.textContent = data.message || "Unable to save your address.";
+    }
+  }catch(e){
+    console.error(e);
+    msg.className = "err";
+    msg.textContent = "Unable to save your address right now.";
+  }
+}
+
+function saveAddress(){
+  const entry = {
+    label: document.getElementById("f-label").value.trim() || "Address",
+    name: document.getElementById("f-name").value.trim(),
+    phone: document.getElementById("f-phone").value.trim(),
+    line1: document.getElementById("f-line1").value.trim(),
+    line2: document.getElementById("f-line2").value.trim(),
+    city: document.getElementById("f-city").value.trim(),
+    state: document.getElementById("f-state").value.trim(),
+    postalCode: document.getElementById("f-postal").value.trim(),
+    country: document.getElementById("f-country").value.trim(),
+    isDefault: document.getElementById("f-default").checked
+  };
+  if(!entry.line1 || !entry.city){
+    document.getElementById("msg").className = "err";
+    document.getElementById("msg").textContent = "Please fill in at least the address line and city.";
+    return;
+  }
+  if(entry.isDefault) addresses.forEach(a => a.isDefault = false);
+  if(editingIndex === null) addresses.push(entry);
+  else addresses[editingIndex] = entry;
+  persist("Address saved.");
+  closeForm();
+}
+
+function removeAddress(i){
+  if(!confirm("Remove this address?")) return;
+  addresses.splice(i, 1);
+  persist("Address removed.");
+}
+
+function makeDefault(i){
+  addresses.forEach((a, idx) => a.isDefault = idx === i);
+  persist("Default address updated.");
+}
+
+init();
+</script>
+</body>
+</html>

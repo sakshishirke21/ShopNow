@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign In</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      .login-box {
+        background: white;
+        padding: 25px;
+        width: 350px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(15, 17, 17, 0.12);
+      }
+
+      .login-box::before {
+        content: "ShopNow";
+        display: block;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 28px;
+        color: #0f1111;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #888c8c;
+        border-radius: 4px;
+      }
+
+      input:focus {
+        outline: 3px solid rgba(0, 113, 133, 0.22);
+        border-color: #007185;
+      }
+
+      button {
+        width: 100%;
+        background: #ffd814;
+        border: none;
+        padding: 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #f7ca00;
+      }
+
+      p {
+        font-size: 13px;
+        color: #555;
+      }
+
+      hr {
+        margin: 20px 0;
+      }
+
+      .link {
+        color: #007185;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="login-box">
+      <h2>Sign in or create account</h2>
+
+      <label>Enter mobile number or email</label>
+      <input type="text" id="email" />
+
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        minlength="8"
+        autocomplete="current-password"
+      />
+
+      <button onclick="sendOrVerify()">Continue</button>
+
+      <p>
+        By continuing, you agree to ShopNow's Conditions of Use and Privacy
+        Notice.
+      </p>
+
+      <hr />
+
+      <p><b>Buying for work?</b></p>
+      <p class="link">Create a free business account</p>
+    </div>
+
+    <script>
+      async function sendOrVerify() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8) {
+          alert("Enter a valid email and a password of at least 8 characters.");
+          return;
+        }
+
+        try {
+          let res = await fetch("http://localhost:5000/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          let data = await res.json();
+
+          if (!data.success) {
+            res = await fetch("http://localhost:5000/api/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: email.split("@")[0],
+                email,
+                password,
+              }),
+            });
+            data = await res.json();
+          }
+
+          if (!data.success) {
+            alert(data.message || "Login failed");
+            return;
+          }
+
+          localStorage.setItem("user", data.user.name || email);
+          localStorage.setItem("userEmail", email);
+          localStorage.setItem("loggedIn", "true");
+          localStorage.setItem("userToken", data.token);
+          localStorage.setItem("userData", JSON.stringify(data.user));
+
+          alert("Login successful!");
+          window.location.href = "user.html";
+        } catch (error) {
+          console.error(error);
+          alert("Login failed. Please try again.");
+        }
+      }
+    </script>
+  </body>
+</html>

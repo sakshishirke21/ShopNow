@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details | ShopNow</title>
+    <style>
+      :root {
+        --bg: #f7f8fa;
+        --surface: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --primary: #ff9900;
+        --secondary: #232f3e;
+        --accent: #146eb4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .brand {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--secondary);
+      }
+      .actions button {
+        margin-left: 10px;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn-secondary {
+        background: #f3f4f6;
+        color: var(--text);
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #111;
+      }
+      .product-shell {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: start;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+      }
+      .gallery {
+        display: flex;
+        gap: 12px;
+      }
+      .thumbs {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 420px;
+        overflow-y: auto;
+      }
+      .thumb {
+        width: 78px;
+        height: 78px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        background: #fff;
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .thumb.active {
+        border-color: var(--accent);
+      }
+      .image-stage {
+        flex: 1;
+        min-height: 420px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(140deg, #fff, #f9fafb);
+      }
+      .image-stage img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        max-height: 420px;
+        transition: transform 0.3s ease;
+      }
+      .image-stage:hover img {
+        transform: scale(1.2);
+      }
+      .title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 10px;
+      }
+      .meta {
+        color: var(--muted);
+        margin-bottom: 12px;
+      }
+      .rating-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .stars {
+        color: #ff9900;
+        font-size: 18px;
+      }
+      .price-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .price {
+        font-size: 30px;
+        font-weight: 700;
+        color: #b12704;
+      }
+      .old-price {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #ecfdf3;
+        color: #047857;
+        font-size: 12px;
+        font-weight: 700;
+        margin-right: 8px;
+      }
+      .actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0;
+      }
+      .actions-row button {
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-cart {
+        background: #ffd814;
+        color: #111;
+      }
+      .btn-buy {
+        background: #ffa41c;
+        color: #111;
+      }
+      .btn-wishlist {
+        background: #f3f4f6;
+        color: #111;
+      }
+      .info-list {
+        display: grid;
+        gap: 8px;
+        margin: 16px 0 0;
+        color: var(--muted);
+      }
+      .info-list span {
+        display: inline-flex;
+        gap: 8px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 20px 0 10px;
+      }
+      .spec-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .spec-item {
+        background: #f9fafb;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .spec-item strong {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .review-section {
+        display: grid;
+        gap: 20px;
+      }
+      .review-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .review-summary h2 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .review-summary p {
+        margin: 4px 0 0;
+        color: var(--muted);
+      }
+      .review-score {
+        text-align: right;
+      }
+      .review-score .review-avg {
+        font-size: 30px;
+        font-weight: 700;
+        margin: 0;
+      }
+      .review-score .review-meta {
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .review-stars {
+        display: inline-flex;
+        gap: 2px;
+        color: #ff9900;
+        font-size: 18px;
+      }
+      .review-list {
+        display: grid;
+        gap: 14px;
+      }
+      .review-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      }
+      .review-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .review-author {
+        font-weight: 700;
+        color: var(--text);
+      }
+      .review-comment {
+        margin: 0;
+        line-height: 1.8;
+        color: var(--text);
+        white-space: pre-wrap;
+      }
+      .review-form {
+        display: grid;
+        gap: 14px;
+      }
+      .review-form select,
+      .review-form textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        font: inherit;
+        background: #fff;
+        color: var(--text);
+      }
+      .review-form textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+      .review-form button {
+        width: fit-content;
+        padding: 12px 22px;
+        border-radius: 14px;
+        border: none;
+        background: var(--primary);
+        color: #111;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .review-form button:hover {
+        background: #e68e00;
+      }
+      .related-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 14px;
+      }
+      .related-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+      }
+      .related-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      .related-card h4 {
+        margin: 10px 0 6px;
+        font-size: 14px;
+      }
+      .related-card p {
+        margin: 0;
+        color: #b12704;
+        font-weight: 700;
+      }
+      @media (max-width: 960px) {
+        .product-shell {
+          grid-template-columns: 1fr;
+        }
+        .related-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .spec-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .gallery {
+          flex-direction: column;
+        }
+        .thumbs {
+          flex-direction: row;
+          overflow-x: auto;
+          max-height: none;
+        }
+        .related-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="topbar">
+        <div class="brand">ShopNow</div>
+        <div class="actions">
+          <button
+            class="btn-secondary"
+            onclick="window.location.href = 'user.html'"
+          >
+            Back to Store
+          </button>
+        </div>
+      </div>
+
+      <div id="productDetails" class="product-shell">
+        <div class="card">
+          <div id="gallery" class="gallery"></div>
+        </div>
+        <div class="card" id="productInfo"></div>
+      </div>
+
+      <section
+        class="card"
+        id="productReviews"
+        style="margin-top: 24px"
+      ></section>
+
+      <div class="card" style="margin-top: 24px">
+        <div class="section-title">Related products</div>
+        <div id="relatedProducts" class="related-grid"></div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://localhost:5000/api";
+      const UPLOAD_ORIGIN = new URL(API, window.location.href).origin;
+      let product = null;
+      let relatedProducts = [];
+      let selectedImage = 0;
+
+      function getProductImageUrl(productData, index = 0) {
+        const imageList =
+          Array.isArray(productData?.images) && productData.images.length
+            ? productData.images
+            : [];
+        const candidate =
+          imageList[index] ||
+          productData?.image ||
+          productData?.image_url ||
+          "";
+        if (!candidate) return "https://placehold.co/600x600?text=ShopNow";
+        if (
+          /^https?:\/\/(localhost|127\.0\.0\.1)(?::\d+)?\/uploads\//i.test(
+            candidate,
+          )
+        )
+          return `${UPLOAD_ORIGIN}${new URL(candidate).pathname}`;
+        if (/^(https?:)?\/\//i.test(candidate)) return candidate;
+        if (String(candidate).startsWith("/uploads/"))
+          return `${UPLOAD_ORIGIN}${candidate}`;
+        return `${UPLOAD_ORIGIN}/uploads/${encodeURIComponent(String(candidate).replace(/^\/+/, ""))}`;
+      }
+
+      function renderGallery() {
+        const gallery = document.getElementById("gallery");
+        if (!product) return;
+        const images =
+          Array.isArray(product.images) && product.images.length
+            ? product.images
+            : [product.image_url || product.image].filter(Boolean);
+        const displayImages = images.length
+          ? images
+          : ["https://placehold.co/600x600?text=ShopNow"];
+        const videos = Array.isArray(product.videos) ? product.videos : [];
+        const mainImage = getProductImageUrl(product, selectedImage);
+        gallery.innerHTML = `
+        <div class="thumbs">
+          ${displayImages
+            .map(
+              (image, index) => `
+            <div class="thumb ${index === selectedImage ? "active" : ""}" onclick="setSelectedImage(${index})">
+              <img src="${getProductImageUrl({ ...product, images: displayImages }, index)}" alt="thumb-${index}" />
+            </div>
+          `,
+            )
+            .join("")}
+          ${videos.map((video, index) => `<div class="thumb ${selectedImage === displayImages.length + index ? "active" : ""}" onclick="setSelectedImage(${displayImages.length + index})"><span>Video</span></div>`).join("")}
+        </div>
+        <div class="image-stage">
+          ${selectedImage >= displayImages.length ? `<video id="mainImage" controls src="${getProductImageUrl({ image: videos[selectedImage - displayImages.length] })}"></video>` : `<img id="mainImage" src="${mainImage}" alt="${product.name}" />`}
+        </div>
+      `;
+      }
+
+      function setSelectedImage(index) {
+        selectedImage = index;
+        renderGallery();
+      }
+
+      function formatList(values) {
+        if (!values) return [];
+        if (Array.isArray(values)) return values.filter(Boolean);
+        if (typeof values === "string") {
+          return values
+            .split(/,|\n|;/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+        return [];
+      }
+
+      function renderInfo() {
+        const container = document.getElementById("productInfo");
+        if (!product) {
+          container.innerHTML = "<p>Product not found.</p>";
+          return;
+        }
+
+        const rating = Number(product.rating || 0);
+        const reviews = Number(product.reviews || product.totalRatings || 0);
+        const discount = Number(product.discount || 0);
+        const price = Number(product.price || 0);
+        const originalPrice =
+          discount > 0 ? price / (1 - discount / 100) : price;
+        const specItems = formatList(product.specifications);
+        const colors = formatList(product.colors);
+        const sizes = formatList(product.sizes);
+        const features = formatList(product.features);
+        const category = product.category || "";
+        // Attributes are category-defined data saved by Seller Central. Do not
+        // maintain a separate specification list per storefront category.
+        const details = Object.entries(product.attributes || product.specifications || {})
+          .filter(([, value]) => value !== "" && value != null)
+          .map(([key, value]) => ({ label: key.replace(/([A-Z])/g, " $1").replace(/^./, char => char.toUpperCase()), value: Array.isArray(value) ? value.join(", ") : value }));
+
+        container.innerHTML = `
+        <div class="pill">${category || "Product"}</div>
+        <h1 class="title">${product.name}</h1>  
+        <div class="meta">Brand: <strong>${product.brand || "ShopNow"}</strong></div>
+        <div class="rating-row">
+          <div class="stars">${"★".repeat(Math.round(rating || 0))}${"☆".repeat(5 - Math.round(rating || 0))}</div>
+          <div>${rating.toFixed(1)} • ${reviews} reviews</div>
+        </div>
+        <div class="price-row">
+          <div class="price">₹${price.toFixed(2)}</div>
+          ${discount > 0 ? `<div class="old-price">₹${originalPrice.toFixed(2)}</div><div class="pill">${discount}% off</div>` : ""}
+        </div>
+        <div class="meta">${product.stock > 0 ? `In stock (${product.stock} available)` : "Out of stock"}</div>
+        <div class="meta">Delivery: ${product.deliveryInfo || "Free delivery over ₹499"}</div>
+        <div class="actions-row">
+          <button class="btn-cart" onclick="addToCart('${product.id}')">Add to Cart</button>
+          <button class="btn-buy" onclick="buyNow('${product.id}')">Buy Now</button>
+          <button class="btn-wishlist" onclick="toggleWishlist('${product.id}')">Wishlist</button>
+        </div>
+        <div class="info-list">
+          <span>✓ Secure checkout</span>
+          <span>✓ Fast delivery</span>
+          <span>✓ 7-day easy return</span>
+        </div>
+
+        <div class="section-title">About this item</div>
+        <p>${product.description || "Premium quality product curated for your daily needs."}</p>
+
+        <div class="section-title">Specifications</div>
+        <div class="spec-grid">
+          ${(details.length
+            ? details
+            : [
+                { label: "Brand", value: product.brand || "ShopNow" },
+                { label: "Price", value: `₹${price.toFixed(2)}` },
+                { label: "Stock", value: product.stock },
+                {
+                  label: "Delivery",
+                  value: product.deliveryInfo || "Free delivery over ₹499",
+                },
+              ]
+          )
+            .map(
+              (item) => `
+            <div class="spec-item">
+              <strong>${item.label}</strong>
+              <div>${item.value || "—"}</div>
+            </div>
+          `,
+            )
+            .join("")}
+        </div>
+      `;
+      }
+
+      function renderRelatedProducts() {
+        const container = document.getElementById("relatedProducts");
+        if (!relatedProducts.length) {
+          container.innerHTML = "<p>No related products found.</p>";
+          return;
+        }
+        container.innerHTML = relatedProducts
+          .slice(0, 4)
+          .map(
+            (item) => `
+        <div class="related-card" onclick="window.location.href='product-details.html?id=${item.id}'">
+          <img src="${getProductImageUrl(item)}" alt="${item.name}" />
+          <h4>${item.name}</h4>
+          <p>₹${Number(item.price || 0).toFixed(2)}</p>
+        </div>
+      `,
+          )
+          .join("");
+      }
+
+      async function loadProduct() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        if (!id) return;
+        try {
+          const res = await fetch(`${API}/products/${id}`);
+          const data = await res.json();
+          if (data && data.id) {
+            product = {
+              ...data,
+              images: Array.isArray(data.images) ? data.images : [],
+            };
+            const productsRes = await fetch(`${API}/products`);
+            const productsData = await productsRes.json();
+            const list = productsData.products || productsData.data || [];
+
+            const mapped = list.map((item) => ({
+              ...item,
+              id: item.id || item._id,
+              name: item.name,
+              price: Number(item.price || 0),
+              image: item.image_url,
+              images: Array.isArray(item.images) ? item.images : [],
+            }));
+            relatedProducts = mapped.filter(
+              (item) =>
+                String(item.id) !== String(id) &&
+                normalizeCategoryName(item.category) ===
+                  normalizeCategoryName(product.category),
+            );
+            renderGallery();
+            renderInfo();
+            renderReviews();
+            renderRelatedProducts();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function renderStars(rating) {
+        const fullStars = "★".repeat(Math.max(0, Math.min(5, Math.round(rating))));
+        const emptyStars = "☆".repeat(Math.max(0, 5 - Math.max(0, Math.min(5, Math.round(rating)))));
+        return `<span class="review-stars">${fullStars}${emptyStars}</span>`;
+      }
+
+      async function renderReviews() {
+        const container = document.getElementById("productReviews");
+        if (!product || !container) return;
+        const response = await fetch(
+          `${API}/products/${product.id || product._id}/reviews`,
+        );
+        const data = await response.json();
+        const reviews = data.reviews || [];
+        const averageRating = reviews.length
+          ? reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length
+          : 0;
+        container.innerHTML = `
+          <div class="review-section">
+            <div class="review-summary">
+              <div>
+                <h2>Customer reviews</h2>
+                <p>${reviews.length ? `${reviews.length} verified customer review${reviews.length === 1 ? "" : "s"}` : "Be the first to review this product."}</p>
+              </div>
+              <div class="review-score">
+                <p class="review-avg">${averageRating ? averageRating.toFixed(1) : "0.0"}</p>
+                <div class="review-stars">${renderStars(averageRating)}</div>
+                <p class="review-meta">${reviews.length} review${reviews.length === 1 ? "" : "s"}</p>
+              </div>
+            </div>
+            <div class="review-list">
+              ${reviews.length
+                ? reviews
+                    .map(
+                      (r) => `
+                <article class="review-card">
+                  <div class="review-card-header">
+                    <div class="review-author">${r.customerName || "Anonymous"}</div>
+                    ${renderStars(r.rating)}
+                  </div>
+                  <p class="review-comment">${r.comment || "No comment provided."}</p>
+                </article>
+              `,
+                    )
+                    .join("")
+                : "<div class=\"review-card\"><p class=\"review-comment\">No reviews yet. Be the first to leave feedback!</p></div>"}
+            </div>
+            <form id="reviewForm" class="review-form">
+              <h3>Write a customer review</h3>
+              <select name="rating" required>
+                <option value="">Your rating</option>
+                <option value="5">5 - Excellent</option>
+                <option value="4">4 - Good</option>
+                <option value="3">3 - Average</option>
+                <option value="2">2 - Poor</option>
+                <option value="1">1 - Bad</option>
+              </select>
+              <textarea name="comment" required maxlength="1000" placeholder="Share your experience with this product"></textarea>
+              <button type="submit">Submit review</button>
+            </form>
+          </div>
+        `;
+        document.getElementById("reviewForm").onsubmit = submitReview;
+      }
+      async function submitReview(event) {
+        event.preventDefault();
+        const token = localStorage.getItem("userToken");
+        if (!token) return alert("Please sign in to submit a review.");
+        const body = Object.fromEntries(new FormData(event.target));
+        const response = await fetch(
+          `${API}/products/${product.id || product._id}/reviews`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          },
+        );
+        const data = await response.json();
+        if (response.status === 401) {
+          localStorage.removeItem("userToken");
+          localStorage.removeItem("user");
+          return alert(data.message || "Your session has expired. Please sign in again.");
+        }
+        if (!response.ok)
+          return alert(data.message || "Could not submit review.");
+        renderReviews();
+      }
+
+      function normalizeCategoryName(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        const normalized = raw
+          .toLowerCase()
+          .replace(/[_/\-&]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const aliases = {
+          mobile: "Mobiles",
+          mobiles: "Mobiles",
+          phone: "Mobiles",
+          phones: "Mobiles",
+          electronics: "Electronics",
+          electronic: "Electronics",
+          fashion: "Fashion",
+          beauty: "Beauty",
+          "home kitchen": "Home & Kitchen",
+          "toys games": "Toys & Games",
+          books: "Books",
+        };
+        return aliases[normalized] || raw;
+      }
+
+      function addToCart(productId) {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        const existing = cart.find(
+          (item) => String(item.id) === String(productId),
+        );
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          cart.push({
+            id: String(productId),
+            title: product.name,
+            price: Number(product.price || 0),
+            image: getProductImageUrl(product),
+            qty: 1,
+          });
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+        alert(`${product.name} added to cart`);
+      }
+
+      function buyNow(productId) {
+        const checkoutItems = [
+          {
+            id: String(productId),
+            title: product.name,
+            price: Number(product.price || 0),
+            image: getProductImageUrl(product),
+            qty: 1,
+          },
+        ];
+        localStorage.setItem("checkoutData", JSON.stringify(checkoutItems));
+        window.location.href = "checkout.html";
+      }
+
+      function toggleWishlist(productId) {
+        const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+        const exists = wishlist.find(
+          (item) => String(item.id) === String(productId),
+        );
+        if (exists) {
+          alert("Already in wishlist");
+          return;
+        }
+        wishlist.push({
+          id: String(productId),
+          title: product.name,
+          price: Number(product.price || 0),
+          image: getProductImageUrl(product),
+        });
+        localStorage.setItem("wishlist", JSON.stringify(wishlist)); 
+        alert("Added to wishlist");
+      }
+
+      window.onload = loadProduct;
+    </script>
+  </body>
+</html>

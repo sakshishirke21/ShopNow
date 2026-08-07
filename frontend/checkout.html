@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eaeded;
+        color: #0f1111;
+      }
+      header {
+        background: #131921;
+        color: #fff;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        border-bottom: 4px solid #232f3e;
+      }
+      header h1 {
+        font-size: 1.7rem;
+        letter-spacing: -1px;
+      }
+      header h1::after {
+        content: "";
+      }
+      header p {
+        margin: 0;
+        color: #ddd;
+      }
+      .back-btn {
+        color: #0f1111;
+        text-decoration: none;
+        font-size: 0.95rem;
+        background: #ffd814;
+        padding: 9px 14px;
+        border-radius: 18px;
+        font-weight: 700;
+        box-shadow: 0 1px 2px rgba(15, 17, 17, 0.15);
+      }
+      main {
+        max-width: 1100px;
+        margin: 24px auto;
+        padding: 0 20px;
+      }
+      h1,
+      h2 {
+        margin: 0 0 16px;
+      }
+      .checkout-summary {
+        background: #fff;
+        border: 1px solid #d5d9d9;
+        padding: 24px;
+        box-shadow: 0 1px 2px rgba(15, 17, 17, 0.12);
+      }
+      .checkout-products {
+        display: grid;
+        gap: 0;
+        border-top: 1px solid #eaeded;
+      }
+      .product-row {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        padding: 18px 0;
+        border-bottom: 1px solid #eaeded;
+      }
+      .product-row img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        background: #f7f7f7;
+        flex-shrink: 0;
+      }
+      .product-row h3 {
+        margin: 0 0 8px;
+        font-size: 1.05rem;
+      }
+      .product-row p {
+        margin: 6px 0;
+        color: #444;
+      }
+      .checkout-total {
+        margin: 24px 0;
+        padding: 16px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-align: right;
+        background: #f7f7f7;
+        border: 1px solid #eaeded;
+      }
+      .empty {
+        color: #555;
+        font-size: 1rem;
+      }
+      input,
+      textarea,
+      select {
+        border: 1px solid #888c8c;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 3px solid rgba(0, 113, 133, 0.22);
+        border-color: #007185;
+      }
+      #placeOrderBtn {
+        margin-top: 20px;
+        width: 100%;
+        padding: 12px 18px;
+        background: #ffd814;
+        color: #0f1111;
+        border: 1px solid #fcd200;
+        border-radius: 20px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      #placeOrderBtn:hover {
+        background: #f7ca00;
+      }
+      #placeOrderBtn:disabled {
+        background: #999;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="user.html" class="back-btn">Back to ShopNow</a>
+      <div>
+        <h1>ShopNow</h1>
+        <p>Secure checkout</p>
+      </div>
+    </header>
+    <main>
+      <section class="checkout-summary">
+        <h2>Order summary</h2>
+        <div id="checkoutProducts" class="checkout-products"></div>
+        <div id="checkoutTotal" class="checkout-total"></div>
+        <div class="coupon-box">
+          <input id="couponCode" placeholder="Enter coupon code" /><button
+            type="button"
+            id="applyCouponBtn"
+          >
+            Apply</button
+          ><small id="couponMessage"></small>
+        </div>
+
+        <h2>Delivery Details</h2>
+
+        <input
+          id="customerName"
+          type="text"
+          placeholder="Full Name"
+          style="width: 100%; padding: 12px; margin: 8px 0"
+        />
+        <input
+          id="customerPhone"
+          type="text"
+          placeholder="Phone Number"
+          style="width: 100%; padding: 12px; margin: 8px 0"
+        />
+        <textarea
+          id="customerAddress"
+          placeholder="Full Address"
+          style="width: 100%; padding: 12px; margin: 8px 0; height: 100px"
+        ></textarea>
+        <input
+          id="customerCity"
+          type="text"
+          placeholder="City"
+          style="width: 100%; padding: 12px; margin: 8px 0"
+        />
+        <input
+          id="customerPincode"
+          type="text"
+          placeholder="Pincode"
+          style="width: 100%; padding: 12px; margin: 8px 0"
+        />
+
+        <select
+          id="paymentMethod"
+          style="width: 100%; padding: 12px; margin: 8px 0"
+        >
+          <option value="COD">Cash on Delivery</option>
+          <option value="ONLINE">Online Payment (Razorpay)</option>
+        </select>
+
+        <button id="placeOrderBtn">Place order</button>
+      </section>
+    </main>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="maps-checkout.js" defer></script>
+    <script>
+      const checkoutData =
+        JSON.parse(localStorage.getItem("checkoutData")) || [];
+      const productsContainer = document.getElementById("checkoutProducts");
+      const totalContainer = document.getElementById("checkoutTotal");
+      const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+      if (!checkoutData.length) {
+        productsContainer.innerHTML =
+          '<p class="empty">No checkout products found. Please add items to your cart and try again.</p>';
+        totalContainer.innerHTML = "";
+        placeOrderBtn.disabled = true;
+      } else {
+        let total = 0;
+        productsContainer.innerHTML = checkoutData
+          .map((item) => {
+            const subtotal = (item.price || 0) * (item.qty || 1);
+            total += subtotal;
+            return `
+          <div class="product-row">
+            <img src="${item.image || ""}" alt="${item.title || "Product"}">
+            <div>
+              <h3>${item.title || "Product"}</h3>
+              <p>Quantity: ${item.qty || 1}</p>
+              <p>Price: $${Number(item.price || 0).toFixed(2)}</p>
+              <p>Subtotal: $${subtotal.toFixed(2)}</p>
+            </div>
+          </div>
+        `;
+          })
+          .join("");
+        window.checkoutSubtotal = total;
+        window.checkoutPayableTotal = total;
+        totalContainer.innerHTML = `Total: ₹${total.toFixed(2)}`;
+      }
+
+      document
+        .getElementById("applyCouponBtn")
+        .addEventListener("click", async () => {
+          const code = document.getElementById("couponCode").value.trim();
+          const message = document.getElementById("couponMessage");
+          if (!code) {
+            message.textContent = "Enter a coupon code first.";
+            return;
+          }
+          
+const token = localStorage.getItem("userToken");
+
+const response = await fetch(
+  "http://localhost:5000/api/coupons/apply",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      code,
+      subtotal: window.checkoutSubtotal
+    })
+  }
+);
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            message.textContent =
+              data.message || "Coupon could not be applied.";
+            return;
+          }
+          window.checkoutPayableTotal = data.total;
+          totalContainer.innerHTML = `Subtotal: ₹${window.checkoutSubtotal.toFixed(2)}<br>Coupon discount: -₹${data.discount.toFixed(2)}<br><strong>Total: ₹${data.total.toFixed(2)}</strong>`;
+          message.textContent = `${data.coupon.code} applied successfully.`;
+        });
+
+      placeOrderBtn.addEventListener("click", async () => {
+        const name = document.getElementById("customerName").value.trim();
+        const phone = document.getElementById("customerPhone").value.trim();
+        const address = document.getElementById("customerAddress").value.trim();
+        const city = document.getElementById("customerCity").value.trim();
+        const pincode = document.getElementById("customerPincode").value.trim();
+
+        if (!name || !phone || !address || !city || !pincode) {
+          alert("Please fill all fields");
+          return;
+        }
+
+        const paymentMethod = document.getElementById("paymentMethod").value;
+
+        const total =
+          window.checkoutPayableTotal ??
+          checkoutData.reduce((sum, item) => {
+            return sum + item.price * item.qty;
+          }, 0);
+
+        if (paymentMethod === "ONLINE") {
+          try {
+            const configResponse = await fetch(
+              "http://localhost:5000/api/razorpay/config",
+            );
+            const configData = await configResponse.json().catch(() => ({}));
+
+            if (!configData.success || !configData.keyId) {
+              alert("Razorpay is not configured on the server yet.");
+              return;
+            }
+
+            const token = localStorage.getItem("userToken");
+
+const response = await fetch(
+  "http://localhost:5000/api/create-order",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({
+      amount: total,
+      receipt: `order-${Date.now()}`,
+      customerName: name,
+    }),
+  }
+);
+
+            const order = await response.json();
+            if (!order.id) {
+              alert(order.message || "Unable to create Razorpay order.");
+              return;
+            }
+
+            const options = {
+              key: configData.keyId,
+              amount: order.amount,
+              currency: order.currency,
+              order_id: order.id,
+              name: "ShopNow",
+              description: "Shopping Payment",
+              prefill: {
+                name,
+                contact: phone,
+              },
+              handler: async function (response) {
+                const verify = await fetch(
+                  "http://localhost:5000/api/verify-payment",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(response),
+                  },
+                );
+
+                const result = await verify.json();
+
+                if (result.success) {
+                  saveOrder(
+                    response.razorpay_payment_id,
+                    response.razorpay_order_id,
+                    response.razorpay_signature,
+                  );
+                } else {
+                  alert("Payment verification failed.");
+                }
+              },
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+          } catch (error) {
+            console.error(error);
+            alert("Unable to start Razorpay checkout.");
+          }
+        } else {
+          saveOrder("COD");
+        }
+      });
+
+      async function saveOrder(
+        paymentId,
+        paymentReference = "",
+        paymentSignature = "",
+      ) {
+        const token = localStorage.getItem("userToken");
+        console.log("Saved Token =", token);
+
+        if (!token) {
+          alert("Please login before placing your order.");
+          window.location.href = "login.html";
+          return;
+        }
+
+        try {
+          console.log("Authorization Header =", "Bearer " + token);
+          const res = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({
+              products: checkoutData,
+              total:
+                window.checkoutPayableTotal ??
+                checkoutData.reduce(
+                  (sum, item) =>
+                    sum + Number(item.price || 0) * Number(item.qty || 1),
+                  0,
+                ),
+              customerName: document
+                .getElementById("customerName")
+                .value.trim(),
+              customerPhone: document
+                .getElementById("customerPhone")
+                .value.trim(),
+              customerAddress: document
+                .getElementById("customerAddress")
+                .value.trim(),
+              customerCity: document
+                .getElementById("customerCity")
+                .value.trim(),
+              customerPincode: document
+                .getElementById("customerPincode")
+                .value.trim(),
+              paymentMethod: document.getElementById("paymentMethod").value,
+              paymentId: paymentId || "",
+              paymentReference: paymentReference || "",
+              paymentSignature: paymentSignature || "",
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!data.success) {
+            alert(data.message || "Unable to place your order.");
+            return;
+          }
+
+          localStorage.setItem(
+            "lastOrderId",
+            data.order?.id || data.order?._id || "",
+          );
+          localStorage.removeItem("checkoutData");
+          localStorage.removeItem("cart");
+
+          alert("Order placed successfully!");
+          window.location.href = "track-order.html";
+        } catch (error) {
+          console.error(error);
+          alert("Unable to place your order right now.");
+        }
+      }
+    </script>
+  </body>
+</html>

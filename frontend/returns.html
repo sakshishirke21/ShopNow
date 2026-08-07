@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Returns & Refunds - ShopNow</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#eaeded; color:#0f1111; }
+  header { background:#131921; color:#fff; padding:14px 24px; border-bottom:4px solid #232f3e; display:flex; justify-content:space-between; align-items:center; }
+  .brand { color:#fff; text-decoration:none; font-size:1.7rem; font-weight:700; letter-spacing:-1px; }
+  .brand span { font-size:1rem; font-weight:400; margin-left:8px; color:#ddd; }
+  a.back { color:#ddd; text-decoration:none; font-size:0.9rem; }
+  main { max-width:640px; margin:28px auto; padding:0 18px 60px; }
+  .panel { background:#fff; border:1px solid #d5d9d9; padding:24px; border-radius:6px; box-shadow:0 1px 2px rgba(15,17,17,0.12); }
+  h1 { margin:0 0 8px; font-size:1.6rem; }
+  p.sub { margin:0 0 22px; color:#565959; }
+  label { display:block; font-weight:700; font-size:0.9rem; margin:14px 0 6px; }
+  select, textarea { width:100%; padding:10px; border:1px solid #888c8c; border-radius:4px; font-size:0.95rem; font-family:inherit; }
+  textarea { resize:vertical; min-height:100px; }
+  button { margin-top:20px; padding:11px 22px; border:1px solid #fcd200; border-radius:20px; background:#ffd814; font-weight:700; cursor:pointer; }
+  button:hover { background:#f7ca00; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
+  #msg { margin-top:16px; font-size:0.9rem; }
+  #msg.ok { color:#1e7b34; }
+  #msg.err { color:#c0392b; }
+  .signin-note { text-align:center; padding:40px 20px; color:#565959; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="user.html">ShopNow<span>Returns &amp; Refunds</span></a>
+  <a class="back" href="help.html">Help</a>
+</header>
+<main>
+  <div class="panel" id="panel">
+    <h1>Start a return or exchange</h1>
+    <p class="sub">Select the order and item you'd like to return, then tell us what happened. Our support team will follow up by email with the next steps.</p>
+    <div id="formArea">
+      <label for="orderSelect">Which order is this about?</label>
+      <select id="orderSelect" onchange="renderItems()"><option>Loading your orders&hellip;</option></select>
+
+      <label for="itemSelect">Which item?</label>
+      <select id="itemSelect"><option>Select an order first</option></select>
+
+      <label for="reasonSelect">Reason for return</label>
+      <select id="reasonSelect">
+        <option>Item is defective or doesn't work</option>
+        <option>Wrong item was sent</option>
+        <option>Item arrived damaged</option>
+        <option>No longer needed / changed my mind</option>
+        <option>Item doesn't match the description</option>
+        <option>Other</option>
+      </select>
+
+      <label for="details">Anything else we should know? (optional)</label>
+      <textarea id="details" placeholder="Add any extra details that will help us process your request faster."></textarea>
+
+      <button id="submitBtn" onclick="submitReturn()">Submit return request</button>
+      <div id="msg"></div>
+    </div>
+  </div>
+</main>
+<script>
+const API = "http://localhost:5000/api";
+const token = localStorage.getItem("userToken");
+const params = new URLSearchParams(location.search);
+const preselectOrder = params.get("order");
+let orders = [];
+
+async function init(){
+  const orderSelect = document.getElementById("orderSelect");
+  if(!token){
+    document.getElementById("formArea").innerHTML = `<p class="signin-note">Please <a href="login.html">sign in</a> to start a return.</p>`;
+    return;
+  }
+  try{
+    const res = await fetch(`${API}/orders/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    orders = Array.isArray(data) ? data : (data.orders || []);
+    if(!orders.length){
+      orderSelect.innerHTML = `<option>You have no orders to return</option>`;
+      return;
+    }
+    orderSelect.innerHTML = orders.map(o => `<option value="${o._id || o.id}">${o.number || (o._id || o.id)} - ${new Date(o.createdAt).toLocaleDateString()}</option>`).join("");
+    if(preselectOrder) orderSelect.value = preselectOrder;
+    renderItems();
+  }catch(e){
+    console.error(e);
+    orderSelect.innerHTML = `<option>Unable to load orders</option>`;
+  }
+}
+
+function renderItems(){
+  const orderId = document.getElementById("orderSelect").value;
+  const order = orders.find(o => (o._id || o.id) === orderId);
+  const itemSelect = document.getElementById("itemSelect");
+  const items = (order && (order.items || order.products)) || [];
+  if(!items.length){ itemSelect.innerHTML = "<option>No items found</option>"; return; }
+  itemSelect.innerHTML = items.map((i, idx) => `<option value="${idx}">${i.name || i.title || "Product"} (Qty ${i.quantity || 1})</option>`).join("");
+}
+
+async function submitReturn(){
+  const btn = document.getElementById("submitBtn");
+  const msg = document.getElementById("msg");
+  const orderSelect = document.getElementById("orderSelect");
+  const order = orders.find(o => (o._id || o.id) === orderSelect.value);
+  if(!order){ msg.className = "err"; msg.textContent = "Please select a valid order."; return; }
+  const items = (order.items || order.products) || [];
+  const item = items[Number(document.getElementById("itemSelect").value)] || {};
+  const reason = document.getElementById("reasonSelect").value;
+  const details = document.getElementById("details").value.trim();
+  const user = JSON.parse(localStorage.getItem("userData") || "null");
+  const userEmail = localStorage.getItem("userEmail") || (user && user.email) || "";
+
+  const message = `Return request for order ${order.number || order._id || order.id}.
+Item: ${item.name || item.title || "Product"}
+Reason: ${reason}
+${details ? "Details: " + details : ""}`;
+
+  btn.disabled = true;
+  msg.className = "";
+  msg.textContent = "Submitting your request&hellip;";
+  try{
+    const res = await fetch(`${API}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: (user && user.name) || localStorage.getItem("user") || "ShopNow customer",
+        email: userEmail,
+        message
+      })
+    });
+    const data = await res.json();
+    if(res.ok && data.success !== false){
+      msg.className = "ok";
+      msg.textContent = "Your return request has been submitted. We'll email you with the next steps.";
+    } else {
+      msg.className = "err";
+      msg.textContent = data.message || "Unable to submit your request. Please try again.";
+    }
+  }catch(e){
+    console.error(e);
+    msg.className = "err";
+    msg.textContent = "Unable to submit your request right now.";
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
