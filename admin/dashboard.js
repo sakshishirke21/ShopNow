@@ -509,7 +509,10 @@ function getOrders() {
   })
     .then((res) => res.json())
     .then((data) => {
-      orders = Array.isArray(data) ? data : [];
+      // The API wraps the list as { success, orders: [...] } (same shape as
+      // /api/navigation's { nodes }), not a bare array -- unwrap it so real
+      // orders placed on the website actually reach the admin dashboard.
+      orders = Array.isArray(data?.orders) ? data.orders : Array.isArray(data) ? data : [];
       renderOrders();
       updateStats();
       renderRevenueChart();
@@ -705,18 +708,24 @@ function renderOrders() {
 
   table.innerHTML = orders
     .map((order) => {
+      // Real Order documents (see backend Order model) store the buyer as a
+      // populated `customer` ref and the line items as `items`, not the
+      // `user`/`userId`/`products` placeholders this used to look for.
       const customerName =
         order.customerName ||
-        order.user?.name ||
-        (typeof order.userId === "object" ? order.userId.name : order.userId) ||
+        order.customer?.name ||
+        (typeof order.customer === "string" ? order.customer : "") ||
         "User";
-      const customerEmail = order.customerEmail || order.user?.email || "";
+      const customerEmail = order.customerEmail || order.customer?.email || "";
+      const itemsList = (order.items || order.products || [])
+        .map((item) => `${item.name || item.title || "Item"}${item.quantity > 1 ? ` x${item.quantity}` : ""}`)
+        .join("<br>");
 
       return `
             <tr>
-                <td>${order._id || "-"}</td>
+                <td>${order.number || order._id || "-"}</td>
                 <td>${customerName}${customerEmail ? `<br><small>${customerEmail}</small>` : ""}</td>
-                <td>${(order.products || []).map((p) => p.name || p.title).join("<br>")}</td>
+                <td>${itemsList}</td>
                 <td>₹${order.total || 0}</td>
                 <td><span class="badge">${order.status || "Placed"}</span></td>
             </tr>
