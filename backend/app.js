@@ -9,6 +9,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
@@ -19,7 +20,17 @@ const Models = require("./src/models");
 const email = require("./src/services/email");
 const app = express();
 const port = Number(process.env.PORT || 5000);
-const uploads = path.join(__dirname, "uploads");
+// Files already committed to backend/uploads (existing product images etc.)
+// ship with the deployment and are readable everywhere, including Vercel.
+const bundledUploads = path.join(__dirname, "uploads");
+// Vercel's filesystem is read-only except /tmp, and /tmp is wiped between
+// invocations, so NEW uploads can't go into bundledUploads there. This keeps
+// uploads from crashing the request on Vercel, but they won't persist across
+// deploys/cold starts - move to Vercel Blob/S3/Cloudinary before relying on
+// admin-uploaded images in production.
+const uploads = process.env.VERCEL
+  ? path.join(os.tmpdir(), "uploads")
+  : bundledUploads;
 fs.mkdirSync(uploads, { recursive: true });
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5000")
   .split(",")
@@ -88,6 +99,14 @@ app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(mongoSanitize());
 app.use("/uploads", express.static(uploads, { maxAge: "7d", immutable: true }));
+if (uploads !== bundledUploads) {
+  // Fallback for images that shipped with the deployment (existing product
+  // photos etc.) when the writable dir above is the ephemeral /tmp one.
+  app.use(
+    "/uploads",
+    express.static(bundledUploads, { maxAge: "7d", immutable: true }),
+  );
+}
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -1526,12 +1545,39 @@ app.use((err, _req, res, _next) => {
   });
 });
 const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/shopnow";
-mongoose
-  .connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
-  .then(() =>
-    app.listen(port, () => console.log(`ShopNow API listening on ${port}`)),
-  )
-  .catch((error) => {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
-  });
+
+// Reuse one connection across warm serverless invocations instead of opening
+// a new one per request, which would exhaust Atlas's connection limit.
+let cached = global.__shopnowMongoose;
+if (!cached) cached = global.__shopnowMongoose = { promise: null };
+function connectToDatabase() {
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
+      .catch((error) => {
+        cached.promise = null; // allow the next invocation to retry
+        throw error;
+      });
+  }
+  return cached.promise;
+}
+
+if (process.env.VERCEL) {
+  // Serverless: Vercel invokes the exported app per-request, so it must
+  // never call app.listen(). Kick off the (cached) DB connection - mongoose
+  // queues queries until it resolves - and export the app for api/index.js.
+  connectToDatabase().catch((error) =>
+    console.error("MongoDB connection failed:", error.message),
+  );
+  module.exports = app;
+} else {
+  // Traditional long-running server: local dev, a VPS, etc.
+  connectToDatabase()
+    .then(() =>
+      app.listen(port, () => console.log(`ShopNow API listening on ${port}`)),
+    )
+    .catch((error) => {
+      console.error("MongoDB connection failed:", error.message);
+      process.exit(1);
+    });
+}

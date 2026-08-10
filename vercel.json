@@ -1,0 +1,11 @@
+{
+  "installCommand": "npm install --prefix backend",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "backend/uploads/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
+  ]
+}
