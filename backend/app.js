@@ -13,16 +13,11 @@ const path = require("path");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Razorpay = require("razorpay");
 const { body, validationResult } = require("express-validator");
 const { v4: uuid } = require("uuid");
 const Models = require("./src/models");
 const email = require("./src/services/email");
 const app = express();
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
 const port = Number(process.env.PORT || 5000);
 const uploads = path.join(__dirname, "uploads");
 fs.mkdirSync(uploads, { recursive: true });
@@ -41,7 +36,6 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "https://cdnjs.cloudflare.com",
-          "https://checkout.razorpay.com",
           "https://maps.googleapis.com",
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
@@ -69,8 +63,6 @@ app.use(
           "https://maps.googleapis.com",
         ],
         frameSrc: [
-          "https://api.razorpay.com",
-          "https://checkout.razorpay.com",
           "https://www.google.com",
         ],
       },
@@ -242,65 +234,6 @@ app.get("/api/config/public", (_q, res) =>
     googleMapsKey: process.env.GOOGLE_MAPS_BROWSER_KEY || "",
   }),
 );
-// Keep checkout graceful when Razorpay credentials have not been configured.
-// Razorpay Public Key
-app.get("/api/razorpay/config", (req, res) => {
-  res.json({
-    success: true,
-    keyId: process.env.RAZORPAY_KEY_ID,
-  });
-});
-
-app.post("/api/create-order", auth, async (req, res, next) => {
-  try {
-    const amount = Number(req.body.amount || 0);
-
-    if (!amount) {
-      return fail(res, 400, "Invalid amount");
-    }
-
-    const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100),
-      currency: "INR",
-      receipt: req.body.receipt || `receipt_${Date.now()}`,
-    });
-
-    res.json({
-      success: true,
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/api/verify-payment", (req, res) => {
-  const {
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature,
-  } = req.body;
-
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(razorpay_order_id + "|" + razorpay_payment_id)
-    .digest("hex");
-
-  if (expectedSignature === razorpay_signature) {
-    return res.json({
-      success: true,
-      message: "Payment verified successfully.",
-    });
-  }
-
-  return res.status(400).json({
-    success: false,
-    message: "Payment verification failed.",
-  });
-});
-
 app.post(
   "/api/contact",
   rateLimit({ windowMs: 3600000, limit: 5 }),

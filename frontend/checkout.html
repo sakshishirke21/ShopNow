@@ -191,14 +191,12 @@
           id="paymentMethod"
           style="width: 100%; padding: 12px; margin: 8px 0"
         >
-          <option value="COD">Cash on Delivery</option>
-          <option value="ONLINE">Online Payment (Razorpay)</option>
+          <option value="COD">Cash on Delivery (COD)</option>
         </select>
 
         <button id="placeOrderBtn">Place order</button>
       </section>
     </main>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="maps-checkout.js" defer></script>
     <script>
       const checkoutData =
@@ -284,96 +282,7 @@ const response = await fetch(
           return;
         }
 
-        const paymentMethod = document.getElementById("paymentMethod").value;
-
-        const total =
-          window.checkoutPayableTotal ??
-          checkoutData.reduce((sum, item) => {
-            return sum + item.price * item.qty;
-          }, 0);
-
-        if (paymentMethod === "ONLINE") {
-          try {
-            const configResponse = await fetch(
-              "http://localhost:5000/api/razorpay/config",
-            );
-            const configData = await configResponse.json().catch(() => ({}));
-
-            if (!configData.success || !configData.keyId) {
-              alert("Razorpay is not configured on the server yet.");
-              return;
-            }
-
-            const token = localStorage.getItem("userToken");
-
-const response = await fetch(
-  "http://localhost:5000/api/create-order",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({
-      amount: total,
-      receipt: `order-${Date.now()}`,
-      customerName: name,
-    }),
-  }
-);
-
-            const order = await response.json();
-            if (!order.id) {
-              alert(order.message || "Unable to create Razorpay order.");
-              return;
-            }
-
-            const options = {
-              key: configData.keyId,
-              amount: order.amount,
-              currency: order.currency,
-              order_id: order.id,
-              name: "ShopNow",
-              description: "Shopping Payment",
-              prefill: {
-                name,
-                contact: phone,
-              },
-              handler: async function (response) {
-                const verify = await fetch(
-                  "http://localhost:5000/api/verify-payment",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(response),
-                  },
-                );
-
-                const result = await verify.json();
-
-                if (result.success) {
-                  saveOrder(
-                    response.razorpay_payment_id,
-                    response.razorpay_order_id,
-                    response.razorpay_signature,
-                  );
-                } else {
-                  alert("Payment verification failed.");
-                }
-              },
-            };
-
-            const rzp = new Razorpay(options);
-            rzp.open();
-          } catch (error) {
-            console.error(error);
-            alert("Unable to start Razorpay checkout.");
-          }
-        } else {
-          saveOrder("COD");
-        }
+        saveOrder("COD");
       });
 
       async function saveOrder(
