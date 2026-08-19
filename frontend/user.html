@@ -2294,7 +2294,7 @@ loadProductsFromBackend();
     }
 
     function goToLogin(){
-    window.location.href = "login.html";
+    window.location.href = "/frontend/login.html";
 }
 
 
@@ -2521,7 +2521,7 @@ function updateCartUI() {
         qty: 1
     }]));
 
-    window.location.href = "checkout.html";
+    window.location.href = "/frontend/checkout.html";
 }
     function toggleWishlist(productId) {
         const index = wishlist.indexOf(productId);
@@ -2915,11 +2915,11 @@ function checkout() {
     }
 
     localStorage.setItem("checkoutData", JSON.stringify(cart));
-    window.location.href = "./checkout.html";
+    window.location.href = "/frontend/checkout.html";
 }
 
 function login() {
-    window.location.href = "login.html";
+    window.location.href = "/frontend/login.html";
 }
 
 window.onload = () => {
@@ -2952,7 +2952,7 @@ async function showOrders() {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
-        const orders = Array.isArray(data) ? data : [];
+        const orders = Array.isArray(data.orders) ? data.orders : [];
 
         if (!orders.length) {
             content.innerHTML = "<p style='padding:20px'>No Orders Yet</p>";
@@ -3214,7 +3214,7 @@ async function rateProduct(event, productId, rating) {
 
     if (!localStorage.getItem("userToken")) {
         alert("Please sign in to rate this product.");
-        window.location.href = "login.html";
+        window.location.href = "/frontend/login.html";
         return;
     }
 
