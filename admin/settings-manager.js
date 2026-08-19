@@ -1,6 +1,6 @@
 /* Backend-persisted settings console. Values are always loaded from settings.json. */
 (() => {
-  const API = "http://localhost:5000/api";
+  const API = "/api";
   const auth = () => ({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,

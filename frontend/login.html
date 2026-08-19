@@ -123,7 +123,7 @@
         }
 
         try {
-          let res = await fetch("http://localhost:5000/api/login", {
+          let res = await fetch("/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -131,7 +131,7 @@
           let data = await res.json();
 
           if (!data.success) {
-            res = await fetch("http://localhost:5000/api/register", {
+            res = await fetch("/api/register", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

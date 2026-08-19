@@ -1,105 +1,204 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Contact Us - ShopNow</title>
-<style>
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#eaeded; color:#0f1111; }
-  header { background:#131921; color:#fff; padding:14px 24px; border-bottom:4px solid #232f3e; display:flex; justify-content:space-between; align-items:center; }
-  .brand { color:#fff; text-decoration:none; font-size:1.7rem; font-weight:700; letter-spacing:-1px; }
-  .brand span { font-size:1rem; font-weight:400; margin-left:8px; color:#ddd; }
-  a.back { color:#ddd; text-decoration:none; font-size:0.9rem; }
-  main { max-width:600px; margin:28px auto; padding:0 18px 60px; }
-  .panel { background:#fff; border:1px solid #d5d9d9; border-radius:6px; padding:24px; box-shadow:0 1px 2px rgba(15,17,17,0.12); }
-  h1 { margin:0 0 8px; font-size:1.6rem; }
-  p.sub { margin:0 0 22px; color:#565959; }
-  label { display:block; font-weight:700; font-size:0.9rem; margin:14px 0 6px; }
-  input, textarea { width:100%; padding:10px; border:1px solid #888c8c; border-radius:4px; font-size:0.95rem; font-family:inherit; }
-  textarea { min-height:120px; resize:vertical; }
-  button { margin-top:20px; padding:11px 22px; border:1px solid #fcd200; border-radius:20px; background:#ffd814; font-weight:700; cursor:pointer; }
-  button:hover { background:#f7ca00; }
-  button:disabled { opacity:0.6; cursor:not-allowed; }
-  #msg { margin-top:14px; font-size:0.9rem; }
-  #msg.ok { color:#1e7b34; }
-  #msg.err { color:#c0392b; }
-  .quick-links { display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; font-size:0.85rem; }
-</style>
-</head>
-<body>
-<header>
-  <a class="brand" href="user.html">ShopNow<span>Contact Us</span></a>
-  <a class="back" href="help.html">Help</a>
-</header>
-<main>
-  <div class="panel">
-    <h1>Contact us</h1>
-    <p class="sub">Send us a message and we'll get back to you by email, usually within 1-2 business days.</p>
-    <label for="name">Your name</label>
-    <input id="name" />
-    <label for="email">Your email</label>
-    <input id="email" type="email" />
-    <label for="message">Message</label>
-    <textarea id="message" placeholder="Tell us what's going on, and include your order number if this is about an order."></textarea>
-    <button id="submitBtn" onclick="sendMessage()">Send message</button>
-    <div id="msg"></div>
-    <div class="quick-links">
-      <a href="orders.html">Track an order</a>
-      <a href="returns.html">Start a return</a>
-      <a href="help.html">Browse help topics</a>
-    </div>
-  </div>
-</main>
-<script>
-const API = "http://localhost:5000/api";
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us - ShopNow</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #eaeded;
+        color: #0f1111;
+      }
+      header {
+        background: #131921;
+        color: #fff;
+        padding: 14px 24px;
+        border-bottom: 4px solid #232f3e;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand {
+        color: #fff;
+        text-decoration: none;
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+      .brand span {
+        font-size: 1rem;
+        font-weight: 400;
+        margin-left: 8px;
+        color: #ddd;
+      }
+      a.back {
+        color: #ddd;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      main {
+        max-width: 600px;
+        margin: 28px auto;
+        padding: 0 18px 60px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid #d5d9d9;
+        border-radius: 6px;
+        padding: 24px;
+        box-shadow: 0 1px 2px rgba(15, 17, 17, 0.12);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.6rem;
+      }
+      p.sub {
+        margin: 0 0 22px;
+        color: #565959;
+      }
+      label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin: 14px 0 6px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #888c8c;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        font-family: inherit;
+      }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      button {
+        margin-top: 20px;
+        padding: 11px 22px;
+        border: 1px solid #fcd200;
+        border-radius: 20px;
+        background: #ffd814;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #f7ca00;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #msg {
+        margin-top: 14px;
+        font-size: 0.9rem;
+      }
+      #msg.ok {
+        color: #1e7b34;
+      }
+      #msg.err {
+        color: #c0392b;
+      }
+      .quick-links {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="user.html">ShopNow<span>Contact Us</span></a>
+      <a class="back" href="help.html">Help</a>
+    </header>
+    <main>
+      <div class="panel">
+        <h1>Contact us</h1>
+        <p class="sub">
+          Send us a message and we'll get back to you by email, usually within
+          1-2 business days.
+        </p>
+        <label for="name">Your name</label>
+        <input id="name" />
+        <label for="email">Your email</label>
+        <input id="email" type="email" />
+        <label for="message">Message</label>
+        <textarea
+          id="message"
+          placeholder="Tell us what's going on, and include your order number if this is about an order."
+        ></textarea>
+        <button id="submitBtn" onclick="sendMessage()">Send message</button>
+        <div id="msg"></div>
+        <div class="quick-links">
+          <a href="orders.html">Track an order</a>
+          <a href="returns.html">Start a return</a>
+          <a href="help.html">Browse help topics</a>
+        </div>
+      </div>
+    </main>
+    <script>
+      const API = "/api";
 
-(function prefill(){
-  const email = localStorage.getItem("userEmail");
-  const name = localStorage.getItem("user");
-  if(email) document.getElementById("email").value = email;
-  if(name) document.getElementById("name").value = name;
-})();
+      (function prefill() {
+        const email = localStorage.getItem("userEmail");
+        const name = localStorage.getItem("user");
+        if (email) document.getElementById("email").value = email;
+        if (name) document.getElementById("name").value = name;
+      })();
 
-async function sendMessage(){
-  const btn = document.getElementById("submitBtn");
-  const msg = document.getElementById("msg");
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const message = document.getElementById("message").value.trim();
+      async function sendMessage() {
+        const btn = document.getElementById("submitBtn");
+        const msg = document.getElementById("msg");
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
 
-  if(name.length < 2 || !email.includes("@") || message.length < 5){
-    msg.className = "err";
-    msg.textContent = "Please fill in your name, a valid email, and a short message.";
-    return;
-  }
+        if (name.length < 2 || !email.includes("@") || message.length < 5) {
+          msg.className = "err";
+          msg.textContent =
+            "Please fill in your name, a valid email, and a short message.";
+          return;
+        }
 
-  btn.disabled = true;
-  msg.className = "";
-  msg.textContent = "Sending your message&hellip;";
-  try{
-    const res = await fetch(`${API}/contact`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, message })
-    });
-    const data = await res.json().catch(() => ({}));
-    if(res.ok && data.success !== false){
-      msg.className = "ok";
-      msg.textContent = "Thanks! We've received your message and will get back to you soon.";
-      document.getElementById("message").value = "";
-    }else{
-      msg.className = "err";
-      msg.textContent = (data.errors && data.errors[0] && data.errors[0].msg) || data.message || "Unable to send your message. Please try again.";
-    }
-  }catch(e){
-    console.error(e);
-    msg.className = "err";
-    msg.textContent = "Unable to send your message right now.";
-  }finally{
-    btn.disabled = false;
-  }
-}
-</script>
-</body>
+        btn.disabled = true;
+        msg.className = "";
+        msg.textContent = "Sending your message&hellip;";
+        try {
+          const res = await fetch(`${API}/contact`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, message }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.success !== false) {
+            msg.className = "ok";
+            msg.textContent =
+              "Thanks! We've received your message and will get back to you soon.";
+            document.getElementById("message").value = "";
+          } else {
+            msg.className = "err";
+            msg.textContent =
+              (data.errors && data.errors[0] && data.errors[0].msg) ||
+              data.message ||
+              "Unable to send your message. Please try again.";
+          }
+        } catch (e) {
+          console.error(e);
+          msg.className = "err";
+          msg.textContent = "Unable to send your message right now.";
+        } finally {
+          btn.disabled = false;
+        }
+      }
+    </script>
+  </body>
 </html>

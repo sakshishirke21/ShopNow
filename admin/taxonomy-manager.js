@@ -1,6 +1,6 @@
 /* Four-column Amazon-style category manager; all records come from /api/navigation. */
 (() => {
-  const API = "http://localhost:5000/api";
+  const API = "/api";
   const levels = ["main", "section", "group", "item"];
   const labels = {
     main: "Main Categories",

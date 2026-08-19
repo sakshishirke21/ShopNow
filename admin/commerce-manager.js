@@ -1,6 +1,6 @@
 /* Admin coupon and review moderation console. */
 (() => {
-  const API = "http://localhost:5000/api",
+  const API = "/api";
     token = () => localStorage.getItem("adminToken") || "";
   const auth = {
     "Content-Type": "application/json",

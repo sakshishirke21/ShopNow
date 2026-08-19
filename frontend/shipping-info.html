@@ -1,52 +1,151 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Shipping Info - ShopNow</title>
-<style>
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#eaeded; color:#0f1111; }
-  header { background:#131921; color:#fff; padding:14px 24px; border-bottom:4px solid #232f3e; display:flex; justify-content:space-between; align-items:center; }
-  .brand { color:#fff; text-decoration:none; font-size:1.7rem; font-weight:700; letter-spacing:-1px; }
-  .brand span { font-size:1rem; font-weight:400; margin-left:8px; color:#ddd; }
-  a.back { color:#ddd; text-decoration:none; font-size:0.9rem; }
-  main { max-width:760px; margin:28px auto; padding:0 18px 60px; }
-  .panel { background:#fff; border:1px solid #d5d9d9; border-radius:8px; padding:24px; margin-bottom:18px; }
-  h1 { margin:0 0 8px; font-size:1.6rem; }
-  p.sub { margin:0 0 20px; color:#565959; }
-  table { width:100%; border-collapse:collapse; font-size:0.92rem; }
-  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #eaeded; }
-  th { color:#565959; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.4px; }
-  ul.info-list { margin:0; padding-left:20px; color:#565959; line-height:1.7; font-size:0.92rem; }
-</style>
-</head>
-<body>
-<header>
-  <a class="brand" href="user.html">ShopNow<span>Shipping Info</span></a>
-  <a class="back" href="help.html">Help</a>
-</header>
-<main>
-  <div class="panel">
-    <h1>Shipping information</h1>
-    <p class="sub">Estimated delivery times and shipping costs. Exact timing can vary by item, seller stock and your delivery address.</p>
-    <table>
-      <tr><th>Shipping option</th><th>Estimated delivery</th><th>Cost</th></tr>
-      <tr><td>Standard delivery</td><td>3-6 business days</td><td>Free on eligible orders</td></tr>
-      <tr><td>Express delivery</td><td>1-2 business days</td><td>Charges shown at checkout</td></tr>
-      <tr><td>Local pincodes</td><td>Next day, in select areas</td><td>Charges shown at checkout</td></tr>
-    </table>
-  </div>
-  <div class="panel">
-    <h2 style="margin-top:0;font-size:1.1rem;">Good to know</h2>
-    <ul class="info-list">
-      <li>You can see a live tracking status any time from <a href="orders.html">Your Orders</a>.</li>
-      <li>Delivery estimates are shown on the product page and at checkout before you pay.</li>
-      <li>Multi-item orders may arrive in separate packages on different days.</li>
-      <li>Delays can happen due to weather, regional restrictions, or high demand periods.</li>
-    </ul>
-  </div>
-  <p style="text-align:center;color:#565959;">Questions about a specific delivery? <a href="contact-us.html">Contact our support team</a>.</p>
-</main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shipping Info - ShopNow</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #eaeded;
+        color: #0f1111;
+      }
+      header {
+        background: #131921;
+        color: #fff;
+        padding: 14px 24px;
+        border-bottom: 4px solid #232f3e;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand {
+        color: #fff;
+        text-decoration: none;
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+      .brand span {
+        font-size: 1rem;
+        font-weight: 400;
+        margin-left: 8px;
+        color: #ddd;
+      }
+      a.back {
+        color: #ddd;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      main {
+        max-width: 760px;
+        margin: 28px auto;
+        padding: 0 18px 60px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid #d5d9d9;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.6rem;
+      }
+      p.sub {
+        margin: 0 0 20px;
+        color: #565959;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid #eaeded;
+      }
+      th {
+        color: #565959;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      ul.info-list {
+        margin: 0;
+        padding-left: 20px;
+        color: #565959;
+        line-height: 1.7;
+        font-size: 0.92rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="user.html">ShopNow<span>Shipping Info</span></a>
+      <a class="back" href="help.html">Help</a>
+    </header>
+    <main>
+      <div class="panel">
+        <h1>Shipping information</h1>
+        <p class="sub">
+          Estimated delivery times and shipping costs. Exact timing can vary by
+          item, seller stock and your delivery address.
+        </p>
+        <table>
+          <tr>
+            <th>Shipping option</th>
+            <th>Estimated delivery</th>
+            <th>Cost</th>
+          </tr>
+          <tr>
+            <td>Standard delivery</td>
+            <td>3-6 business days</td>
+            <td>Free on eligible orders</td>
+          </tr>
+          <tr>
+            <td>Express delivery</td>
+            <td>1-2 business days</td>
+            <td>Charges shown at checkout</td>
+          </tr>
+          <tr>
+            <td>Local pincodes</td>
+            <td>Next day, in select areas</td>
+            <td>Charges shown at checkout</td>
+          </tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top: 0; font-size: 1.1rem">Good to know</h2>
+        <ul class="info-list">
+          <li>
+            You can see a live tracking status any time from
+            <a href="orders.html">Your Orders</a>.
+          </li>
+          <li>
+            Delivery estimates are shown on the product page and at checkout
+            before you pay.
+          </li>
+          <li>
+            Multi-item orders may arrive in separate packages on different days.
+          </li>
+          <li>
+            Delays can happen due to weather, regional restrictions, or high
+            demand periods.
+          </li>
+        </ul>
+      </div>
+      <p style="text-align: center; color: #565959">
+        Questions about a specific delivery?
+        <a href="contact-us.html">Contact our support team</a>.
+      </p>
+    </main>
+  </body>
 </html>

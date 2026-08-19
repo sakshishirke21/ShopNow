@@ -243,22 +243,19 @@
             message.textContent = "Enter a coupon code first.";
             return;
           }
-          
-const token = localStorage.getItem("userToken");
 
-const response = await fetch(
-  "http://localhost:5000/api/coupons/apply",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      code,
-      subtotal: window.checkoutSubtotal
-    })
-  }
-);
+          const token = localStorage.getItem("userToken");
+
+          const response = await fetch("/api/coupons/apply", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code,
+              subtotal: window.checkoutSubtotal,
+            }),
+          });
           const data = await response.json().catch(() => ({}));
           if (!response.ok) {
             message.textContent =
@@ -301,7 +298,7 @@ const response = await fetch(
 
         try {
           console.log("Authorization Header =", "Bearer " + token);
-          const res = await fetch("http://localhost:5000/api/orders", {
+          const res = await fetch("/api/orders", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

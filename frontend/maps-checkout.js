@@ -6,7 +6,7 @@
     postal: document.getElementById("customerPincode"),
   };
   if (!fields.address) return;
-  const apiOrigin = new URL("http://localhost:5000/api", window.location.href).origin;
+  const apiOrigin = window.location.origin;
   const config = await fetch(`${apiOrigin}/api/config/public`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);

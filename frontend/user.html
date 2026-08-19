@@ -2056,7 +2056,7 @@ Shop deals
     
 
     <script>
-const API = "http://localhost:5000/api";
+const API = "/api";
 const UPLOAD_ORIGIN = new URL(API, window.location.href).origin;
 
 let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
@@ -2236,7 +2236,7 @@ setInterval(() => {
 
 async function loadStoreSettings() {
     try {
-        const response = await fetch("http://localhost:5000/api/store-settings");
+        const response = await fetch("/api/store-settings");
         const data = await response.json(); const settings = data.settings || {};
         const general = settings.general || {}, appearance = settings.appearance || {};
         if (general.storeName) document.title = `${general.storeName} - Online Shopping`;
@@ -2249,7 +2249,7 @@ loadStoreSettings();
 
 async function loadProductsFromBackend() {
     try {
-        const API = "http://localhost:5000/api";
+        const API = "/api";
         const res = await fetch(`${API}/products`);
         const data = await res.json();   // ADD THIS
 
@@ -2948,7 +2948,7 @@ async function showOrders() {
 
     try {
         const token = localStorage.getItem("userToken");
-        const res = await fetch("http://localhost:5000/api/orders/me", {
+        const res = await fetch("/api/orders/me", {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -2977,7 +2977,7 @@ async function showOrders() {
 async function cancelOrder(orderId) {
     const token = localStorage.getItem("userToken");
     try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+        const res = await fetch(`/api/orders/${orderId}/cancel`, {
             method: "POST",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -3248,7 +3248,7 @@ async function rateProduct(event, productId, rating) {
 
 async function loadProductsFromBackend() {
     try {
-        const API = "http://localhost:5000/api";
+        const API = "/api";
         const res = await fetch(`${API}/products`);
 
         if (!res.ok) {
@@ -3284,7 +3284,7 @@ categoryData = {};
 
 async function loadCategoriesFromBackend() {
     try {
-        const res = await fetch("http://localhost:5000/api/categories");
+        const res = await fetch("/api/categories");
 
         console.log("Status:", res.status); // ? debug
 

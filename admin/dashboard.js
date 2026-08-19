@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api";
+const API = "/api";
 const UPLOAD_ORIGIN = new URL(API, window.location.href).origin;
 const imageUrl = (value) => {
   const image = String(value || "").trim();
@@ -849,7 +849,7 @@ async function handleLogin(e) {
   const errorBox = document.getElementById("loginError");
 
   try {
-    const res = await fetch("http://localhost:5000/api/login", {
+    const res = await fetch("/api/login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
