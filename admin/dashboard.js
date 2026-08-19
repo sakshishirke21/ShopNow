@@ -849,7 +849,7 @@ async function handleLogin(e) {
   const errorBox = document.getElementById("loginError");
 
   try {
-    const res = await fetch("/api/login"), {
+    const res = await fetch("/api/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
